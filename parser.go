@@ -50,6 +50,7 @@ type Options struct {
 	Attribute      *Stack
 	Group          *Stack
 	AttributeGroup *Stack
+	Choice         *Stack
 }
 
 // NewParser creates a new parser options for the Parse. Useful for XML schema
@@ -59,7 +60,7 @@ func NewParser(options *Options) *Options {
 }
 
 // Parse reads XML documents and return proto tree for every element in the
-// documents by given options. If value of the properity extract is false,
+// documents by given options. If value of the property extract is false,
 // parse will fetch schema used in <import> or <include> statements.
 func (opt *Options) Parse() (err error) {
 	opt.FileDir = filepath.Dir(opt.FilePath)
@@ -76,6 +77,7 @@ func (opt *Options) Parse() (err error) {
 	if err != nil {
 		return
 	}
+	defer xmlFile.Close()
 	if !opt.Extract {
 		opt.ParseFileList[opt.FilePath] = true
 		opt.ParseFileMap[opt.FilePath] = opt.ProtoTree
@@ -94,6 +96,7 @@ func (opt *Options) Parse() (err error) {
 	opt.Attribute = NewStack()
 	opt.Group = NewStack()
 	opt.AttributeGroup = NewStack()
+	opt.Choice = NewStack()
 
 	decoder := xml.NewDecoder(xmlFile)
 	decoder.CharsetReader = charset.NewReaderLabel
@@ -125,7 +128,6 @@ func (opt *Options) Parse() (err error) {
 		}
 
 	}
-	defer xmlFile.Close()
 
 	if !opt.Extract {
 		opt.ParseFileList[opt.FilePath] = true

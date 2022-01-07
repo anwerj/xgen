@@ -18,6 +18,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -89,17 +90,17 @@ var BuildInTypes = map[string][]string{
 	"base64Binary":       {"[]byte", "Uint8Array", "char[]", "List<Byte>", "String"},
 	"boolean":            {"bool", "boolean", "bool", "Boolean", "bool"},
 	"byte":               {"byte", "any", "char[]", "Byte", "u8"},
-	"date":               {"time.Time", "string", "char", "Byte", "u8"},
-	"dateTime":           {"time.Time", "string", "char", "Byte", "u8"},
+	"date":               {"string", "string", "char", "String", "u8"},
+	"dateTime":           {"string", "string", "char", "String", "u8"},
 	"decimal":            {"float64", "number", "float", "Float", "f64"},
 	"double":             {"float64", "number", "float", "Float", "f64"},
 	"duration":           {"string", "string", "char", "String", "String"},
 	"float":              {"float", "number", "float", "Float", "f64"},
-	"gDay":               {"time.Time", "string", "char", "String", "String"},
-	"gMonth":             {"time.Time", "string", "char", "String", "String"},
-	"gMonthDay":          {"time.Time", "string", "char", "String", "String"},
-	"gYear":              {"time.Time", "string", "char", "String", "String"},
-	"gYearMonth":         {"time.Time", "string", "char", "String", "String"},
+	"gDay":               {"string", "string", "char", "String", "String"},
+	"gMonth":             {"string", "string", "char", "String", "String"},
+	"gMonthDay":          {"string", "string", "char", "String", "String"},
+	"gYear":              {"string", "string", "char", "String", "String"},
+	"gYearMonth":         {"string", "string", "char", "String", "String"},
 	"hexBinary":          {"[]byte", "Uint8Array", "char[]", "List<Byte>", "String"},
 	"int":                {"int", "number", "int", "Integer", "i32"},
 	"integer":            {"int", "number", "int", "Integer", "i32"},
@@ -252,4 +253,30 @@ func genFieldComment(name, doc, prefix string) string {
 		return fmt.Sprintf("\r\n%s %s ...\r\n", prefix, name)
 	}
 	return fmt.Sprintf("\r\n%s %s is %s\r\n", prefix, name, docReplacer.Replace(doc))
+}
+
+type kvPair struct {
+	key string
+	value string
+}
+
+// kvPairList adapted from Andrew Gerrand for a similar problem (sorted map): https://groups.google.com/forum/#!topic/golang-nuts/FT7cjmcL7gw
+type kvPairList []kvPair
+
+func (k kvPairList) Len() int { return len(k) }
+
+func (k kvPairList) Less(i, j int) bool {
+	return k[i].value < k[j].value || (k[i].value == k[j].value && strings.Compare(k[i].key, k[j].key) > 0)
+}
+
+func (k kvPairList) Swap(i, j int) { k[i], k[j] = k[j], k[i] }
+
+func toSortedPairs(toSort map[string]string) kvPairList {
+	pl := make(kvPairList, 0, len(toSort))
+	for k, v := range toSort {
+		pl = append(pl, kvPair{k, v})
+	}
+
+	sort.Sort(pl)
+	return pl
 }

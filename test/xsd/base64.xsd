@@ -1,4 +1,4 @@
-<schema xmlns="http://www.w3.org/2001/XMLSchema" targetNamespace="http://example.org/">
+<schema xmlns="http://www.w3.org/2001/XMLSchema" xmlns:here="http://example.org/" targetNamespace="http://example.org/">
   <simpleType name="myType1">
     <restriction base="base64Binary">
       <length value="10" />
@@ -32,5 +32,42 @@
   <simpleType name="myType5">
     <restriction base="gDay"/>
   </simpleType>
-</schema>
 
+  <complexType name="MyType6">
+    <attribute name="code">
+      <simpleType>
+        <restriction base="string">
+          <enumeration value="value1"/>
+          <enumeration value="value2"/>
+        </restriction>
+      </simpleType>
+    </attribute>
+    <attribute name="identifier" type="int"/>
+  </complexType>
+
+  <complexType name="MyType7">
+    <simpleContent>
+      <extension base="string">
+        <attribute type="string" name="origin" use="required"/>
+      </extension>
+    </simpleContent>
+  </complexType>
+
+  <element name="TopLevel">
+    <complexType>
+      <complexContent>
+        <extension base="here:MyType6">
+          <sequence>
+            <element name="nested" type="here:MyType7" minOccurs="0" maxOccurs="1" />
+            <choice minOccurs="0" maxOccurs="unbounded">
+              <element name="myType1" type="here:myType1" />
+              <element name="myType2" type="here:myType2" />
+            </choice>
+          </sequence>
+          <attribute name="cost" type="double"/>
+          <attribute name="LastUpdated" type="dateTime"/>
+        </extension>
+      </complexContent>
+    </complexType>
+  </element>
+</schema>
