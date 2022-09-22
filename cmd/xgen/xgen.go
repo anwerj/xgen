@@ -106,10 +106,6 @@ func parseFlags() *Config {
 
 func main() {
 	cfg := parseFlags()
-	if err := xgen.PrepareOutputDir(cfg.O); err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
 	files, err := xgen.GetFileList(cfg.I)
 	if err != nil {
 		fmt.Println(err)

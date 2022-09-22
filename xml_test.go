@@ -2,12 +2,13 @@ package xgen
 
 import (
 	"encoding/xml"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	schema "github.com/xuri/xgen/test/go"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	schema "github.com/xuri/xgen/test/go"
 )
 
 // TestGeneratedGo runs through test cases to validate Go generated structs. Each test case
@@ -17,7 +18,7 @@ import (
 func TestGeneratedGo(t *testing.T) {
 	testCases := []struct {
 		// xmlFileName is the path to the xml fixture file to unmarshal into the receiving struct
-		xmlFileName     string
+		xmlFileName string
 		// receivingStruct is a pointer to the struct to unmarshal the xml file content into. It should match
 		// the type of the top level element present in that file
 		receivingStruct interface{}
@@ -47,6 +48,65 @@ func TestGeneratedGo(t *testing.T) {
 			require.NoError(t, err)
 
 			assert.Equal(t, string(input), string(remarshaled))
+		})
+	}
+}
+
+func TestToTitle(t *testing.T) {
+	test := func(expected, actual string) {
+		assert.Equal(t, expected, ToTitle(actual))
+	}
+
+	test("", "")
+	test("A", "a")
+	test("Ab", "ab")
+	test("A b", "a b")
+	test("Ab cd", "ab cd")
+
+	// Test Сyrillic (`привет мир` → `hello world`)
+	test("Привет", "привет")
+	test("Привет мир", "привет мир")
+}
+
+func TestCodeGeneratorFileWithExtension(t *testing.T) {
+	testCases := []struct {
+		description string
+		filename    string
+		extension   string
+		expected    string
+	}{
+		{
+			description: "filename without extension and extension without period should add extension",
+			filename:    "foo",
+			extension:   "java",
+			expected:    "foo.java",
+		},
+		{
+			description: "filename without extension and extension with period should add extension",
+			filename:    "foo",
+			extension:   ".java",
+			expected:    "foo.java",
+		},
+		{
+			description: "filename with extension already should not add extension",
+			filename:    "foo.java",
+			extension:   ".java",
+			expected:    "foo.java",
+		},
+		{
+			description: "filename with different extension should add extension",
+			filename:    "foo.bar",
+			extension:   ".java",
+			expected:    "foo.bar.java",
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.description, func(t *testing.T) {
+			gen := CodeGenerator{
+				File: tc.filename,
+			}
+			actual := gen.FileWithExtension(tc.extension)
+			assert.Equal(t, tc.expected, actual)
 		})
 	}
 }
